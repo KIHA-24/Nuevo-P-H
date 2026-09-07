@@ -21,6 +21,14 @@ version = 0.1
 # (list) Application requirements
 requirements = python3==3.11.9,hostpython3==3.11.9,kivy==2.3.1,kivymd==2.0.0,requests,pillow
 
+# (str) Custom local recipes to override the default python-for-android ones.
+# python3/__init__.py here is a copy of the upstream recipe with one line
+# added to get_recipe_env(): it skips CPython's own autoconf check that
+# turns implicit function declarations into a hard compile error, which
+# otherwise breaks building CPython's grp module for Android (Android's
+# libc doesn't declare setgrent/getgrent/endgrent). Not fixed upstream yet.
+p4a.local_recipes = ./p4a-recipes
+
 # (str) Presplash of the application
 #presplash.filename = %(source.dir)s/data/presplash.png
 
