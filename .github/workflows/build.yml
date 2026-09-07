@@ -45,9 +45,12 @@ jobs:
           ls -la    
 
       - name: Build APK
+        env:
+          PIP_NO_CACHE_DIR: 1
         run: |
           success=false
           for i in 1 2 3 4 5; do
+            rm -rf ~/.cache/pip
             if yes | buildozer android debug; then
               success=true
               break
