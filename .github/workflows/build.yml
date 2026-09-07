@@ -5,6 +5,9 @@ on:
   push:
     branches: [ main ]
 
+env:
+  PIP_CONSTRAINT: /tmp/pip-constraints.txt
+
 jobs:
   build:
     runs-on: ubuntu-22.04
@@ -15,6 +18,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      - name: Pin pip to a known-stable version
+        run: echo "pip==24.3.1" > /tmp/pip-constraints.txt
 
       - name: Cache Buildozer downloads
         uses: actions/cache@v4
@@ -42,15 +48,13 @@ jobs:
           cd .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/packages/freetype
           curl -L "https://sourceforge.net/projects/freetype/files/freetype2/2.14.1/freetype-2.14.1.tar.gz/download" -o freetype-2.14.1.tar.gz
           touch .mark-freetype-2.14.1.tar.gz
-          ls -la    
+          ls -la
 
       - name: Build APK
-        env:
-          PIP_NO_CACHE_DIR: 1
         run: |
           success=false
           for i in 1 2 3 4 5; do
-            rm -rf ~/.cache/pip
+            find .buildozer -type d -name venv -exec rm -rf {} + 2>/dev/null || true
             if yes | buildozer android debug; then
               success=true
               break
