@@ -7,6 +7,11 @@ on:
 
 env:
   PIP_CONSTRAINT: /tmp/pip-constraints.txt
+  # Clang moderno (NDK 25b incluido) trata como error fatal el uso de
+  # funciones no declaradas (ej. setgrent/getgrent/endgrent del modulo
+  # grp de CPython) en modo C99. python-for-android aun no trae un
+  # parche para esto, asi que se baja a advertencia explicitamente.
+  CFLAGS: -Wno-error=implicit-function-declaration -Wno-error=incompatible-pointer-types -Wno-error=int-conversion
 
 jobs:
   build:
