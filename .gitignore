@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*.pyc
+datos_locales/
+.buildozer/
+bin/
+*.apk
+*.spec.local

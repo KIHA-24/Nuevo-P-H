@@ -1,0 +1,306 @@
+<ConfiguracionScreen>:
+    name: "configuracion"
+    md_bg_color: self.theme_cls.backgroundColor
+
+    MDBoxLayout:
+        orientation: "vertical"
+
+        BackTopAppBar:
+            id: barra_superior
+            title: "Configuracion"
+            callback_volver: root.volver
+
+        MDBoxLayout:
+            orientation: "vertical"
+            padding: "20dp", "16dp"
+            spacing: "10dp"
+
+            MDLabel:
+                text: "Umbrales optimos para tu cultivo"
+                halign: "center"
+                bold: True
+                font_size: "17sp"
+                size_hint_y: None
+                height: self.texture_size[1] + 6
+
+            MDLabel:
+                text: "El sistema usara estos rangos para calcular el estado del cultivo"
+                halign: "center"
+                theme_text_color: "Secondary"
+                font_size: "12sp"
+                size_hint_y: None
+                height: self.texture_size[1] + 4
+
+            MDBoxLayout:
+                spacing: "10dp"
+                size_hint_y: None
+                height: "44dp"
+
+                MDIcon:
+                    icon: "theme-light-dark"
+                    theme_text_color: "Secondary"
+                    pos_hint: {"center_y": 0.5}
+                    size_hint: None, None
+                    size: "24dp", "24dp"
+
+                MDLabel:
+                    text: "Tema oscuro"
+                    pos_hint: {"center_y": 0.5}
+
+                MDSwitch:
+                    id: switch_tema
+                    pos_hint: {"center_y": 0.5}
+                    on_active: root.cambiar_tema(self.active)
+
+            MDDivider:
+
+            ScrollView:
+                do_scroll_x: False
+
+                MDBoxLayout:
+                    orientation: "vertical"
+                    spacing: "14dp"
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: 0, "8dp"
+
+                    MDLabel:
+                        text: "CANAL DE THINGSPEAK"
+                        bold: True
+                        theme_text_color: "Secondary"
+                        font_size: "12sp"
+                        size_hint_y: None
+                        height: self.texture_size[1]
+
+                    MDTextField:
+                        id: channel_id
+                        mode: "outlined"
+                        size_hint_y: None
+                        height: "56dp"
+
+                        MDTextFieldLeadingIcon:
+                            icon: "identifier"
+
+                        MDTextFieldHintText:
+                            text: "Channel ID"
+
+                    MDTextField:
+                        id: read_api_key
+                        mode: "outlined"
+                        size_hint_y: None
+                        height: "56dp"
+
+                        MDTextFieldLeadingIcon:
+                            icon: "key-outline"
+
+                        MDTextFieldHintText:
+                            text: "Read API Key"
+
+                    MDTextField:
+                        id: write_api_key
+                        mode: "outlined"
+                        size_hint_y: None
+                        height: "56dp"
+
+                        MDTextFieldLeadingIcon:
+                            icon: "key-outline"
+
+                        MDTextFieldHintText:
+                            text: "Write API Key (opcional)"
+
+                    MDDivider:
+
+                    MDLabel:
+                        text: "PH"
+                        bold: True
+                        theme_text_color: "Secondary"
+                        font_size: "12sp"
+                        size_hint_y: None
+                        height: self.texture_size[1]
+
+                    MDBoxLayout:
+                        spacing: "10dp"
+                        size_hint_y: None
+                        height: "64dp"
+
+                        MDTextField:
+                            id: ph_min
+                            mode: "outlined"
+                            input_filter: "float"
+
+                            MDTextFieldLeadingIcon:
+                                icon: "flask-outline"
+
+                            MDTextFieldHintText:
+                                text: "pH minimo"
+
+                        MDTextField:
+                            id: ph_max
+                            mode: "outlined"
+                            input_filter: "float"
+
+                            MDTextFieldLeadingIcon:
+                                icon: "flask-outline"
+
+                            MDTextFieldHintText:
+                                text: "pH maximo"
+
+                    MDDivider:
+
+                    MDLabel:
+                        text: "CONDUCTIVIDAD ELECTRICA (CE)"
+                        bold: True
+                        theme_text_color: "Secondary"
+                        font_size: "12sp"
+                        size_hint_y: None
+                        height: self.texture_size[1]
+
+                    MDBoxLayout:
+                        spacing: "10dp"
+                        size_hint_y: None
+                        height: "64dp"
+
+                        MDTextField:
+                            id: ce_min
+                            mode: "outlined"
+                            input_filter: "float"
+
+                            MDTextFieldLeadingIcon:
+                                icon: "flash-outline"
+
+                            MDTextFieldHintText:
+                                text: "CE minima"
+
+                        MDTextField:
+                            id: ce_max
+                            mode: "outlined"
+                            input_filter: "float"
+
+                            MDTextFieldLeadingIcon:
+                                icon: "flash-outline"
+
+                            MDTextFieldHintText:
+                                text: "CE maxima"
+
+                    MDDivider:
+
+                    MDLabel:
+                        text: "TEMPERATURA"
+                        bold: True
+                        theme_text_color: "Secondary"
+                        font_size: "12sp"
+                        size_hint_y: None
+                        height: self.texture_size[1]
+
+                    MDBoxLayout:
+                        spacing: "10dp"
+                        size_hint_y: None
+                        height: "64dp"
+
+                        MDTextField:
+                            id: temperatura_min
+                            mode: "outlined"
+                            input_filter: "float"
+
+                            MDTextFieldLeadingIcon:
+                                icon: "thermometer"
+
+                            MDTextFieldHintText:
+                                text: "Minima (°C)"
+
+                        MDTextField:
+                            id: temperatura_max
+                            mode: "outlined"
+                            input_filter: "float"
+
+                            MDTextFieldLeadingIcon:
+                                icon: "thermometer"
+
+                            MDTextFieldHintText:
+                                text: "Maxima (°C)"
+
+                    MDDivider:
+
+                    MDLabel:
+                        text: "HUMEDAD"
+                        bold: True
+                        theme_text_color: "Secondary"
+                        font_size: "12sp"
+                        size_hint_y: None
+                        height: self.texture_size[1]
+
+                    MDBoxLayout:
+                        spacing: "10dp"
+                        size_hint_y: None
+                        height: "64dp"
+
+                        MDTextField:
+                            id: humedad_min
+                            mode: "outlined"
+                            input_filter: "float"
+
+                            MDTextFieldLeadingIcon:
+                                icon: "water-percent"
+
+                            MDTextFieldHintText:
+                                text: "Minima (%)"
+
+                        MDTextField:
+                            id: humedad_max
+                            mode: "outlined"
+                            input_filter: "float"
+
+                            MDTextFieldLeadingIcon:
+                                icon: "water-percent"
+
+                            MDTextFieldHintText:
+                                text: "Maxima (%)"
+
+                    MDDivider:
+
+                    MDLabel:
+                        text: "ILUMINACION SOLAR"
+                        bold: True
+                        theme_text_color: "Secondary"
+                        font_size: "12sp"
+                        size_hint_y: None
+                        height: self.texture_size[1]
+
+                    MDBoxLayout:
+                        spacing: "10dp"
+                        size_hint_y: None
+                        height: "64dp"
+
+                        MDTextField:
+                            id: iluminacion_min
+                            mode: "outlined"
+                            input_filter: "float"
+
+                            MDTextFieldLeadingIcon:
+                                icon: "white-balance-sunny"
+
+                            MDTextFieldHintText:
+                                text: "Minima (lux)"
+
+                        MDTextField:
+                            id: iluminacion_max
+                            mode: "outlined"
+                            input_filter: "float"
+
+                            MDTextFieldLeadingIcon:
+                                icon: "white-balance-sunny"
+
+                            MDTextFieldHintText:
+                                text: "Maxima (lux)"
+
+            MDButton:
+                style: "filled"
+                pos_hint: {"center_x": 0.5}
+                size_hint_x: 0.9
+                on_release: root.guardar()
+
+                MDButtonIcon:
+                    icon: "content-save-outline"
+
+                MDButtonText:
+                    text: "GUARDAR"

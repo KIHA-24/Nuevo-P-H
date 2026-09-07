@@ -1,0 +1,136 @@
+<DetalleScreen>:
+    name: "detalle"
+    md_bg_color: self.theme_cls.backgroundColor
+
+    MDBoxLayout:
+        orientation: "vertical"
+
+        BackTopAppBar:
+            id: barra_superior
+            title: "Detalle de variable"
+            callback_volver: root.volver
+
+        MDBoxLayout:
+            orientation: "vertical"
+            padding: "20dp"
+            spacing: "16dp"
+
+            MDGridLayout:
+                cols: 3
+                spacing: "8dp"
+                size_hint_y: None
+                height: "96dp"
+
+                BotonAncho:
+                    style: "filled" if root.variable_actual == "ph" else "outlined"
+                    theme_width: "Custom"
+                    size_hint_x: 1
+                    on_release: root.mostrar_variable("ph")
+                    MDButtonText:
+                        text: "pH"
+
+                BotonAncho:
+                    style: "filled" if root.variable_actual == "ce" else "outlined"
+                    theme_width: "Custom"
+                    size_hint_x: 1
+                    on_release: root.mostrar_variable("ce")
+                    MDButtonText:
+                        text: "CE"
+
+                BotonAncho:
+                    style: "filled" if root.variable_actual == "npk" else "outlined"
+                    theme_width: "Custom"
+                    size_hint_x: 1
+                    on_release: root.mostrar_variable("npk")
+                    MDButtonText:
+                        text: "NPK"
+
+                BotonAncho:
+                    style: "filled" if root.variable_actual == "temperatura" else "outlined"
+                    theme_width: "Custom"
+                    size_hint_x: 1
+                    on_release: root.mostrar_variable("temperatura")
+                    MDButtonText:
+                        text: "Temp."
+
+                BotonAncho:
+                    style: "filled" if root.variable_actual == "humedad" else "outlined"
+                    theme_width: "Custom"
+                    size_hint_x: 1
+                    on_release: root.mostrar_variable("humedad")
+                    MDButtonText:
+                        text: "Humedad"
+
+                BotonAncho:
+                    style: "filled" if root.variable_actual == "iluminacion" else "outlined"
+                    theme_width: "Custom"
+                    size_hint_x: 1
+                    on_release: root.mostrar_variable("iluminacion")
+                    MDButtonText:
+                        text: "Luz"
+
+            MDCard:
+                orientation: "vertical"
+                style: "elevated"
+                elevation_level: 1
+                radius: [20]
+                padding: "18dp"
+                spacing: "4dp"
+                size_hint_y: None
+                height: "130dp"
+
+                MDIcon:
+                    id: icono_variable
+                    icon: "flask-outline"
+                    pos_hint: {"center_x": 0.5}
+                    theme_text_color: "Custom"
+                    text_color: 0.0, 0.35, 0.35, 1
+                    font_size: "22sp"
+
+                MDLabel:
+                    id: titulo_variable
+                    text: "pH"
+                    bold: True
+                    halign: "center"
+                    theme_text_color: "Secondary"
+                    font_size: "13sp"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+
+                MDLabel:
+                    id: valor_actual
+                    text: "--"
+                    font_size: "34sp"
+                    bold: True
+                    halign: "center"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+
+            MDCard:
+                orientation: "vertical"
+                style: "outlined"
+                radius: [20]
+                padding: "20dp"
+                spacing: "8dp"
+
+                MDLabel:
+                    text: "Grafica de tendencia"
+                    bold: True
+                    halign: "center"
+                    theme_text_color: "Secondary"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+
+                GraficaTendencia:
+                    id: grafica_tendencia
+                    size_hint_y: None
+                    height: "160dp"
+
+                MDLabel:
+                    id: mensaje_historial
+                    text: "Aun no hay datos historicos para graficar"
+                    halign: "center"
+                    theme_text_color: "Secondary"
+                    font_size: "12sp"
+                    size_hint_y: None
+                    height: self.texture_size[1]

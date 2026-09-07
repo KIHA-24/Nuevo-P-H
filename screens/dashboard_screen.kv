@@ -1,0 +1,206 @@
+#:import dp kivy.metrics.dp
+
+
+<DashboardScreen>:
+    name: "dashboard"
+    md_bg_color: self.theme_cls.backgroundColor
+
+    MDBoxLayout:
+        orientation: "vertical"
+
+        MDTopAppBar:
+            type: "small"
+            elevation_level: 1
+            shadow_softness: 4
+
+            MDTopAppBarLeadingButtonContainer:
+                MDActionTopAppBarButton:
+                    icon: "sprout"
+
+            MDTopAppBarTitle:
+                id: titulo_appbar
+                text: "Dashboard - HydroSmart"
+
+            MDTopAppBarTrailingButtonContainer:
+                MDActionTopAppBarButton:
+                    icon: "logout"
+                    on_release: root.cerrar_sesion()
+
+        MDBoxLayout:
+            orientation: "horizontal"
+            size_hint_y: None
+            height: "52dp"
+            padding: "12dp", "6dp"
+            spacing: "8dp"
+
+            ScrollView:
+                do_scroll_y: False
+
+                MDBoxLayout:
+                    id: fila_cultivos
+                    orientation: "horizontal"
+                    spacing: "8dp"
+                    padding: "2dp"
+                    size_hint_x: None
+                    width: self.minimum_width
+
+            MDIconButton:
+                icon: "plus"
+                style: "tonal"
+                on_release: root.abrir_dialogo_nuevo_cultivo()
+
+        MDDivider:
+
+        MDBoxLayout:
+            orientation: "vertical"
+            padding: "16dp"
+            spacing: "14dp"
+
+            MDLabel:
+                text: "Estado actual del cultivo"
+                theme_text_color: "Secondary"
+                font_size: "13sp"
+                size_hint_y: None
+                height: self.texture_size[1]
+
+            MDCard:
+                id: card_estado
+                orientation: "horizontal"
+                style: "filled"
+                theme_bg_color: "Custom"
+                md_bg_color: 0.9, 0.9, 0.9, 1
+                radius: [18]
+                padding: "14dp", "12dp"
+                spacing: "12dp"
+                size_hint_y: None
+                height: "64dp"
+
+                MDIcon:
+                    id: icono_estado
+                    icon: "clipboard-pulse-outline"
+                    theme_text_color: "Custom"
+                    text_color: 0.35, 0.35, 0.35, 1
+                    font_size: "26sp"
+                    size_hint: None, None
+                    size: "32dp", "32dp"
+                    pos_hint: {"center_y": 0.5}
+
+                MDLabel:
+                    id: valor_estado
+                    text: "Sin datos"
+                    bold: True
+                    font_size: "16sp"
+                    theme_text_color: "Custom"
+                    text_color: 0.12, 0.12, 0.12, 1
+                    pos_hint: {"center_y": 0.5}
+
+            ScrollView:
+                do_scroll_x: False
+                effect_cls: "ScrollEffect"
+
+                MDGridLayout:
+                    # Mas columnas en pantallas anchas (tablet/PC) para
+                    # aprovechar el espacio en vez de dejar las tarjetas
+                    # angostas y una sola columna larga.
+                    cols: 2 if self.width < dp(600) else (3 if self.width < dp(900) else 4)
+                    spacing: "12dp"
+                    size_hint_y: None
+                    row_default_height: "150dp"
+                    height: self.minimum_height
+
+                    VariableCard:
+                        id: card_ph
+                        titulo: "pH"
+                        valor: "--"
+                        icono: "flask-outline"
+                        md_bg_color: 0.80, 0.92, 0.91, 1
+                        color_icono: 0.0, 0.35, 0.35, 1
+                        variable_id: "ph"
+                        callback_tocar: root.ir_a_detalle
+
+                    VariableCard:
+                        id: card_ce
+                        titulo: "CE"
+                        valor: "--"
+                        icono: "flash-outline"
+                        md_bg_color: 0.82, 0.90, 0.95, 1
+                        color_icono: 0.05, 0.35, 0.5, 1
+                        variable_id: "ce"
+                        callback_tocar: root.ir_a_detalle
+
+                    VariableCard:
+                        id: card_npk
+                        titulo: "NPK"
+                        valor: "--"
+                        icono: "leaf"
+                        md_bg_color: 0.99, 0.92, 0.78, 1
+                        color_icono: 0.55, 0.38, 0.05, 1
+                        variable_id: "npk"
+                        callback_tocar: root.ir_a_detalle
+
+                    VariableCard:
+                        id: card_temperatura
+                        titulo: "Temperatura"
+                        valor: "--"
+                        icono: "thermometer"
+                        md_bg_color: 0.99, 0.85, 0.80, 1
+                        color_icono: 0.75, 0.28, 0.05, 1
+                        variable_id: "temperatura"
+                        callback_tocar: root.ir_a_detalle
+
+                    VariableCard:
+                        id: card_humedad
+                        titulo: "Humedad"
+                        valor: "--"
+                        icono: "water-percent"
+                        md_bg_color: 0.80, 0.88, 0.97, 1
+                        color_icono: 0.05, 0.3, 0.6, 1
+                        variable_id: "humedad"
+                        callback_tocar: root.ir_a_detalle
+
+                    VariableCard:
+                        id: card_iluminacion
+                        titulo: "Iluminacion"
+                        valor: "--"
+                        icono: "white-balance-sunny"
+                        md_bg_color: 0.99, 0.94, 0.75, 1
+                        color_icono: 0.65, 0.5, 0.0, 1
+                        variable_id: "iluminacion"
+                        callback_tocar: root.ir_a_detalle
+
+            MDDivider:
+
+            MDBoxLayout:
+                spacing: "10dp"
+                size_hint_y: None
+                height: "48dp"
+
+                BotonAncho:
+                    style: "tonal"
+                    theme_width: "Custom"
+                    size_hint_x: 1
+                    on_release: root.ir_a("detalle")
+                    MDButtonIcon:
+                        icon: "chart-line"
+                    MDButtonText:
+                        text: "Detalle"
+
+                BotonAncho:
+                    style: "tonal"
+                    theme_width: "Custom"
+                    size_hint_x: 1
+                    on_release: root.ir_a("historial")
+                    MDButtonIcon:
+                        icon: "history"
+                    MDButtonText:
+                        text: "Historial"
+
+                BotonAncho:
+                    style: "tonal"
+                    theme_width: "Custom"
+                    size_hint_x: 1
+                    on_release: root.ir_a("configuracion")
+                    MDButtonIcon:
+                        icon: "cog-outline"
+                    MDButtonText:
+                        text: "Config"

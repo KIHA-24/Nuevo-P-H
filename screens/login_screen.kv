@@ -1,0 +1,76 @@
+<LoginScreen>:
+    name: "login"
+    md_bg_color: self.theme_cls.backgroundColor
+
+    MDBoxLayout:
+        orientation: "vertical"
+        padding: "32dp"
+        spacing: "14dp"
+
+        Widget:
+            size_hint_y: 0.15
+
+        MDIcon:
+            icon: "sprout"
+            pos_hint: {"center_x": 0.5}
+            theme_text_color: "Custom"
+            text_color: self.theme_cls.primaryColor
+            font_size: "56sp"
+
+        MDLabel:
+            text: "HydroSmart"
+            font_size: "30sp"
+            bold: True
+            halign: "center"
+            size_hint_y: None
+            height: self.texture_size[1] + 10
+
+        MDLabel:
+            text: "Monitoreo hidroponico inteligente"
+            halign: "center"
+            theme_text_color: "Secondary"
+            size_hint_y: None
+            height: self.texture_size[1] + 10
+
+        Widget:
+            size_hint_y: 0.1
+
+        MDTextField:
+            id: usuario
+            mode: "outlined"
+            size_hint_x: 0.9
+            pos_hint: {"center_x": 0.5}
+
+            MDTextFieldLeadingIcon:
+                icon: "account"
+
+            MDTextFieldHintText:
+                text: "Usuario"
+
+        MDTextField:
+            id: contrasena
+            password: True
+            mode: "outlined"
+            size_hint_x: 0.9
+            pos_hint: {"center_x": 0.5}
+
+            MDTextFieldLeadingIcon:
+                icon: "lock"
+
+            MDTextFieldHintText:
+                text: "Contrasena"
+
+        MDButton:
+            style: "filled"
+            pos_hint: {"center_x": 0.5}
+            size_hint_x: 0.9
+            on_release: root.validar_login(usuario.text, contrasena.text)
+
+            MDButtonIcon:
+                icon: "login"
+
+            MDButtonText:
+                text: "INICIAR SESION"
+
+        Widget:
+            size_hint_y: 0.3

@@ -1,0 +1,69 @@
+<HistorialScreen>:
+    name: "historial"
+    md_bg_color: self.theme_cls.backgroundColor
+
+    MDBoxLayout:
+        orientation: "vertical"
+
+        BackTopAppBar:
+            id: barra_superior
+            title: "Historial de mediciones"
+            callback_volver: root.volver
+
+        MDBoxLayout:
+            orientation: "vertical"
+            padding: "16dp"
+            spacing: "12dp"
+
+            MDBoxLayout:
+                spacing: "10dp"
+                size_hint_y: None
+                height: "48dp"
+
+                BotonAncho:
+                    style: "filled" if root.rango_actual == "dia" else "outlined"
+                    theme_width: "Custom"
+                    size_hint_x: 1
+                    on_release: root.cargar_historial("dia")
+                    MDButtonIcon:
+                        icon: "calendar-today"
+                    MDButtonText:
+                        text: "Hoy"
+
+                BotonAncho:
+                    style: "filled" if root.rango_actual == "semana" else "outlined"
+                    theme_width: "Custom"
+                    size_hint_x: 1
+                    on_release: root.cargar_historial("semana")
+                    MDButtonIcon:
+                        icon: "calendar-week"
+                    MDButtonText:
+                        text: "Semana"
+
+            MDBoxLayout:
+                id: contenedor_vacio
+                orientation: "vertical"
+                spacing: "6dp"
+                size_hint_y: None
+                height: "90dp" if mensaje_vacio.opacity else 0
+                opacity: mensaje_vacio.opacity
+
+                MDIcon:
+                    icon: "tray-remove"
+                    pos_hint: {"center_x": 0.5}
+                    theme_text_color: "Secondary"
+                    font_size: "30sp"
+
+                MDLabel:
+                    id: mensaje_vacio
+                    text: "No hay mediciones registradas todavia"
+                    halign: "center"
+                    theme_text_color: "Secondary"
+                    size_hint_y: None
+                    height: "24dp"
+
+            ScrollView:
+                MDList:
+                    id: lista_historial
+                    size_hint_y: None
+                    height: self.minimum_height
