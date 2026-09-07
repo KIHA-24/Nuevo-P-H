@@ -43,7 +43,7 @@ android.permissions = android.permission.INTERNET
 #android.minapi = 24
 
 # (str) Android NDK version to use
-#android.ndk = 23b
+android.ndk = 25b
 
 [buildozer]
 
