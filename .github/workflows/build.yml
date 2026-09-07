@@ -38,7 +38,11 @@ jobs:
 
       - name: Build APK
         run: |
-          yes | buildozer android debug
+          for i in 1 2 3 4 5; do
+            yes | buildozer android debug && break
+            echo "Intento $i fallo, esperando 45 segundos antes de reintentar..."
+            sleep 45
+          done
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
