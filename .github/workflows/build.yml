@@ -16,6 +16,16 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Cache Buildozer downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.buildozer
+            .buildozer
+          key: buildozer-${{ hashFiles('buildozer.spec') }}
+          restore-keys: |
+            buildozer-
+
       - name: Install system dependencies
         run: |
           sudo apt-get update
