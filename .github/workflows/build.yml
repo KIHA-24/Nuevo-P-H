@@ -36,6 +36,14 @@ jobs:
           pip3 install --upgrade pip
           pip3 install buildozer cython==0.29.36
 
+      - name: Pre-download freetype (evita servidor inestable de savannah.gnu.org)
+        run: |
+          mkdir -p .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/packages/freetype
+          cd .buildozer/android/platform/build-arm64-v8a_armeabi-v7a/packages/freetype
+          curl -L "https://sourceforge.net/projects/freetype/files/freetype2/2.14.1/freetype-2.14.1.tar.gz/download" -o freetype-2.14.1.tar.gz
+          touch .mark-freetype-2.14.1.tar.gz
+          ls -la    
+
       - name: Build APK
         run: |
           success=false
