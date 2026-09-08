@@ -25,11 +25,6 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
       - name: Pin pip to a known-stable version
         run: echo "pip==24.3.1" > /tmp/pip-constraints.txt
 
