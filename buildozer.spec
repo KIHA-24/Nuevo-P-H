@@ -34,6 +34,15 @@ requirements = python3,hostpython3,kivy==2.3.1,kivymd==2.0.0,requests,materialyo
 # libc doesn't declare setgrent/getgrent/endgrent). Not fixed upstream yet.
 p4a.local_recipes = ./p4a-recipes
 
+# (str) p4a hook: parchea AndroidManifest.xml (justo despues de generarse,
+# antes de compilarlo) para forzar android:windowSoftInputMode="adjustPan"
+# en la Activity principal. Sin esto, Android redimensiona la superficie de
+# render al mostrar/ocultar el teclado, lo que en este dispositivo (GPU
+# Adreno) provoca un SIGSEGV nativo dentro del driver GL (confirmado con
+# adb logcat: crashea en kivy/graphics/vbo.so -> libGLESv2_adreno.so justo
+# despues de que se oculta el teclado). Ver p4a-hooks/hook.py.
+p4a.hook = ./p4a-hooks/hook.py
+
 # (str) Presplash of the application
 #presplash.filename = %(source.dir)s/data/presplash.png
 
