@@ -19,7 +19,7 @@ source.include_exts = py,png,jpg,kv,atlas,json
 version = 0.1
 
 # (list) Application requirements
-requirements = python3==3.11.9,hostpython3==3.11.9,kivy==2.3.1,kivymd==2.0.0,requests,pillow
+requirements = python3==3.11.9,hostpython3==3.11.9,kivy==2.3.1,kivymd==2.0.0,requests
 
 # (str) Custom local recipes to override the default python-for-android ones.
 # python3/__init__.py here is a copy of the upstream recipe with one line
