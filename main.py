@@ -11,58 +11,107 @@ Integrantes: Kevin Hernandez - Sebastian Caceres
 """
 
 import os
-from kivy.lang import Builder
+import traceback
 from kivy.utils import platform
-from kivymd.app import MDApp
-from kivy.uix.screenmanager import ScreenManager
-from kivy.core.window import Window
-
-# Los componentes reutilizables se cargan primero, porque los .kv de las
-# pantallas los usan (BackTopAppBar, VariableCard).
-Builder.load_file(os.path.join(os.path.dirname(__file__), "widgets", "common.kv"))
-
-from screens.login_screen import LoginScreen
-from screens.dashboard_screen import DashboardScreen
-from screens.detalle_screen import DetalleScreen
-from screens.historial_screen import HistorialScreen
-from screens.configuracion_screen import ConfiguracionScreen
-
-# Tamano de ventana de referencia SOLO para pruebas en escritorio (simula un movil).
-# Esto no afecta como se vera en un celular real / futuro empaquetado a Android.
-Window.size = (360, 640)
 
 
-class HydroSmartManager(ScreenManager):
-    """Controlador de navegacion entre pantallas."""
-    pass
+def run_app():
+    from kivy.lang import Builder
+    from kivymd.app import MDApp
+    from kivy.uix.screenmanager import ScreenManager
+    from kivy.core.window import Window
+
+    # Los componentes reutilizables se cargan primero, porque los .kv de las
+    # pantallas los usan (BackTopAppBar, VariableCard).
+    Builder.load_file(os.path.join(os.path.dirname(__file__), "widgets", "common.kv"))
+
+    from screens.login_screen import LoginScreen
+    from screens.dashboard_screen import DashboardScreen
+    from screens.detalle_screen import DetalleScreen
+    from screens.historial_screen import HistorialScreen
+    from screens.configuracion_screen import ConfiguracionScreen
+
+    if platform not in ("android", "ios"):
+        # Tamano de ventana de referencia SOLO para pruebas en escritorio
+        # (simula un movil). No aplica en un celular real.
+        Window.size = (360, 640)
+
+    class HydroSmartManager(ScreenManager):
+        """Controlador de navegacion entre pantallas."""
+        pass
+
+    class HydroSmartApp(MDApp):
+        def build(self):
+            self.title = "HydroSmart"
+
+            self.theme_cls.theme_style = "Light"
+            self.theme_cls.primary_palette = "Teal"
+
+            sm = HydroSmartManager()
+            sm.add_widget(LoginScreen())
+            sm.add_widget(DashboardScreen())
+            sm.add_widget(DetalleScreen())
+            sm.add_widget(HistorialScreen())
+            sm.add_widget(ConfiguracionScreen())
+
+            return sm
+
+    HydroSmartApp().run()
 
 
-class HydroSmartApp(MDApp):
-    def build(self):
-        self.title = "HydroSmart"
+def _write_crash_log(error_text):
+    """Guarda el error en un archivo de texto dentro de la carpeta de la app,
+    para poder revisarlo despues con un explorador de archivos si la pantalla
+    de error no se alcanza a ver o a leer completa."""
+    try:
+        log_path = os.path.join(os.getcwd(), "hydrosmart_crash_log.txt")
+        with open(log_path, "w", encoding="utf-8") as f:
+            f.write(error_text)
+        return log_path
+    except Exception:
+        return None
 
-        self.theme_cls.theme_style = "Light"
-        self.theme_cls.primary_palette = "Teal"
 
-        sm = HydroSmartManager()
-        sm.add_widget(LoginScreen())
-        sm.add_widget(DashboardScreen())
-        sm.add_widget(DetalleScreen())
-        sm.add_widget(HistorialScreen())
-        sm.add_widget(ConfiguracionScreen())
+def _show_crash_screen(error_text):
+    """Pantalla minima (solo Kivy base, sin KivyMD) para mostrar el error
+    directamente en el celular cuando algo falla al iniciar la app."""
+    from kivy.app import App
+    from kivy.uix.scrollview import ScrollView
+    from kivy.uix.label import Label
 
-        return sm
+    class CrashApp(App):
+        def build(self):
+            label = Label(
+                text="HydroSmart no pudo iniciar:\n\n" + error_text,
+                size_hint_y=None,
+                halign="left",
+                valign="top",
+                padding=(20, 20),
+            )
+            label.bind(
+                width=lambda *_: label.setter("text_size")(label, (label.width, None))
+            )
+            label.bind(
+                texture_size=lambda *_: setattr(label, "height", label.texture_size[1])
+            )
+            scroll = ScrollView()
+            scroll.add_widget(label)
+            return scroll
+
+    CrashApp().run()
 
 
 if __name__ == "__main__":
     try:
-        HydroSmartApp().run()
+        run_app()
     except Exception:
-        import traceback
-        traceback.print_exc()
-    finally:
-        # En Android/iOS no hay consola ni teclado esperando input(), asi que
-        # llamarlo ahi lanza EOFError de inmediato y cierra la app - esta
-        # pausa es solo para ver la ventana de consola en pruebas de escritorio.
+        error_text = traceback.format_exc()
+        print(error_text)
+        log_path = _write_crash_log(error_text)
+        if log_path:
+            error_text += "\n\nGuardado en:\n" + log_path
+
         if platform not in ("android", "ios"):
             input("\nPresiona ENTER para cerrar esta ventana...")
+        else:
+            _show_crash_screen(error_text)
