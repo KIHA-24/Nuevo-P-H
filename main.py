@@ -54,6 +54,24 @@ def run_app():
             sm.add_widget(HistorialScreen())
             sm.add_widget(ConfiguracionScreen())
 
+            if platform == "android":
+                # El comportamiento por defecto de Kivy para el boton/gesto
+                # "atras" en Android minimiza la app (mActivity.moveTaskToBack),
+                # pero esa transicion choca con el hilo de render de Kivy en
+                # este dispositivo (GPU Adreno) y tumba el proceso entero con
+                # un SIGSEGV en vez de solo minimizar. Por eso lo consumimos
+                # nosotros: navegamos entre pantallas propias y, en las
+                # pantallas raiz (dashboard/login), no hacemos nada en vez de
+                # dejar que Kivy dispare el minimizado que crashea.
+                def _manejar_tecla_atras(window, key, *args):
+                    if key != 27:
+                        return False
+                    if sm.current in ("detalle", "historial", "configuracion"):
+                        sm.current = "dashboard"
+                    return True
+
+                Window.bind(on_keyboard=_manejar_tecla_atras)
+
             return sm
 
     HydroSmartApp().run()
