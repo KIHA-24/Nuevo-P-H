@@ -2,6 +2,24 @@
 # Se cargan una sola vez desde main.py, antes de las pantallas,
 # para poder usarlos en cualquier .kv del proyecto.
 
+<CommonRipple>:
+    # Desactiva el efecto ripple (ondas al tocar) en TODOS los widgets de
+    # KivyMD que lo usan (MDButton, MDIconButton, MDCard, MDListItem...),
+    # ya que CommonRipple es la clase base compartida por
+    # RectangularRippleBehavior y CircularRippleBehavior.
+    #
+    # El shader de ripple.glsl de KivyMD 2.0 calcula gl_FragColor por
+    # completo desde matematica (mix/softCircle/sparkles), sin usar nunca
+    # texture2D() - exactamente el patron que revienta en GPUs Adreno
+    # (confirmado con adb logcat en un Redmi: SIGSEGV en
+    # libGLESv2_adreno.so llamado desde kivy/graphics/vbo.so, justo al
+    # tocar el boton de login). Es un bug documentado de Kivy/KivyMD en
+    # Adreno (kivy/python-for-android#2723, kivymd/KivyMD#1508); el fix
+    # de Kivy (kivy/kivy#8098) solo cubre el BoxShadow propio de Kivy, no
+    # el shader de ripple propio de KivyMD. Desactivar el ripple evita
+    # crear ese Fbo/shader por completo.
+    ripple_effect: False
+
 <BackTopAppBar@MDTopAppBar>:
     # Barra superior con boton de "volver" reutilizable.
     # Uso en cualquier pantalla:
