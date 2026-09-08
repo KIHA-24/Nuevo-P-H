@@ -19,7 +19,12 @@ source.include_exts = py,png,jpg,kv,atlas,json
 version = 0.1
 
 # (list) Application requirements
-requirements = python3==3.11.9,hostpython3==3.11.9,kivy==2.3.1,kivymd==2.0.0,requests
+# python3/hostpython3 left unpinned on purpose: KivyMD 2.0's theming.py
+# imports materialyoucolor, which only publishes precompiled Android wheels
+# for Python 3.14 (matching python-for-android's own current default) - not
+# for 3.11, which is what we had pinned before. Pinning an older Python here
+# would make materialyoucolor impossible to install (no recipe, pip-only).
+requirements = python3,hostpython3,kivy==2.3.1,kivymd==2.0.0,requests,materialyoucolor
 
 # (str) Custom local recipes to override the default python-for-android ones.
 # python3/__init__.py here is a copy of the upstream recipe with one line
