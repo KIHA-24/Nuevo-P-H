@@ -12,6 +12,7 @@ Integrantes: Kevin Hernandez - Sebastian Caceres
 
 import os
 from kivy.lang import Builder
+from kivy.utils import platform
 from kivymd.app import MDApp
 from kivy.uix.screenmanager import ScreenManager
 from kivy.core.window import Window
@@ -60,4 +61,8 @@ if __name__ == "__main__":
         import traceback
         traceback.print_exc()
     finally:
-        input("\nPresiona ENTER para cerrar esta ventana...")
+        # En Android/iOS no hay consola ni teclado esperando input(), asi que
+        # llamarlo ahi lanza EOFError de inmediato y cierra la app - esta
+        # pausa es solo para ver la ventana de consola en pruebas de escritorio.
+        if platform not in ("android", "ios"):
+            input("\nPresiona ENTER para cerrar esta ventana...")
