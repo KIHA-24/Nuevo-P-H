@@ -24,7 +24,7 @@ version = 0.1
 # for Python 3.14 (matching python-for-android's own current default) - not
 # for 3.11, which is what we had pinned before. Pinning an older Python here
 # would make materialyoucolor impossible to install (no recipe, pip-only).
-requirements = python3,hostpython3,kivy==2.3.1,kivymd==2.0.0,requests,materialyoucolor,asynckivy,materialshapes
+requirements = python3,hostpython3,kivy==2.3.1,kivymd==2.0.0,requests,materialyoucolor,asynckivy==0.6.4,materialshapes
 
 # (str) Custom local recipes to override the default python-for-android ones.
 # python3/__init__.py here is a copy of the upstream recipe with one line
