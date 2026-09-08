@@ -18,7 +18,7 @@ from kivy.utils import platform
 def run_app():
     from kivy.lang import Builder
     from kivymd.app import MDApp
-    from kivy.uix.screenmanager import ScreenManager
+    from kivy.uix.screenmanager import ScreenManager, NoTransition
     from kivy.core.window import Window
 
     # Los componentes reutilizables se cargan primero, porque los .kv de las
@@ -48,6 +48,16 @@ def run_app():
             self.theme_cls.primary_palette = "Teal"
 
             sm = HydroSmartManager()
+            # La transicion por defecto (SlideTransition) renderiza ambas
+            # pantallas a texturas via Fbo para animarlas con un shader.
+            # En este dispositivo esa creacion de Fbo en cada cambio de
+            # pantalla es justo lo que dispara el SIGSEGV nativo dentro del
+            # driver de la GPU Adreno (confirmado con adb logcat: crashea en
+            # kivy/graphics/vbo.so -> libGLESv2_adreno.so al tocar "Iniciar
+            # sesion", justo cuando arranca la transicion hacia dashboard).
+            # NoTransition cambia de pantalla al instante sin Fbo ni shader,
+            # evitando esa ruta de codigo por completo.
+            sm.transition = NoTransition()
             sm.add_widget(LoginScreen())
             sm.add_widget(DashboardScreen())
             sm.add_widget(DetalleScreen())
