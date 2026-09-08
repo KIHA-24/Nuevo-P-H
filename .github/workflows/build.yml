@@ -34,9 +34,14 @@ jobs:
           path: |
             ~/.buildozer
             .buildozer
-          key: buildozer-${{ hashFiles('buildozer.spec') }}
-          restore-keys: |
-            buildozer-
+          # No restore-keys fallback on purpose: it has repeatedly restored a
+          # cache built under a DIFFERENT buildozer.spec/recipe combo (e.g. a
+          # hostpython3 built before a local recipe fix existed), and since
+          # p4a's build-dir paths don't encode the recipe version, a restored
+          # "already built" binary silently short-circuits should_build() and
+          # skips the fix entirely. A cache miss costs one full rebuild;
+          # this class of bug costs hours of misdiagnosis.
+          key: buildozer-${{ hashFiles('buildozer.spec', 'p4a-recipes/**') }}
 
       - name: Install system dependencies
         run: |
