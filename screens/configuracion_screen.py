@@ -10,7 +10,7 @@ from widgets.snackbar import mostrar_snackbar
 
 Builder.load_file(os.path.join(os.path.dirname(__file__), "configuracion_screen.kv"))
 
-VARIABLES = ["ph", "ce", "temperatura", "humedad", "iluminacion"]
+VARIABLES = ["ph", "ce", "n", "p", "k", "temperatura", "humedad", "iluminacion"]
 
 
 class ConfiguracionScreen(NavegableScreen, MDScreen):

@@ -6,3 +6,4 @@ datos_locales/
 bin/
 *.apk
 *.spec.local
+capturas_manual/

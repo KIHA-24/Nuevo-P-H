@@ -8,7 +8,9 @@ from services import cultivos_store
 from services.thingspeak_client import (
     obtener_ph,
     obtener_ce,
-    obtener_npk,
+    obtener_n,
+    obtener_p,
+    obtener_k,
     obtener_temperatura,
     obtener_humedad,
     obtener_iluminacion,
@@ -27,6 +29,8 @@ VARIABLES = {
         "color": (0.0, 0.35, 0.35, 1),
         "unidad": "",
         "obtener": obtener_ph,
+        "rotulo_eje": "pH",
+        "decimales": 1,
     },
     "ce": {
         "titulo": "CE",
@@ -34,13 +38,35 @@ VARIABLES = {
         "color": (0.05, 0.35, 0.5, 1),
         "unidad": "",
         "obtener": obtener_ce,
+        "rotulo_eje": "CE (mS/cm)",
+        "decimales": 1,
     },
-    "npk": {
-        "titulo": "NPK",
-        "icono": "leaf",
-        "color": (0.55, 0.38, 0.05, 1),
-        "unidad": "",
-        "obtener": obtener_npk,
+    "n": {
+        "titulo": "Nitrogeno",
+        "icono": "alpha-n-circle-outline",
+        "color": (0.15, 0.45, 0.15, 1),
+        "unidad": " ppm",
+        "obtener": obtener_n,
+        "rotulo_eje": "N (ppm)",
+        "decimales": 0,
+    },
+    "p": {
+        "titulo": "Fosforo",
+        "icono": "alpha-p-circle-outline",
+        "color": (0.45, 0.15, 0.55, 1),
+        "unidad": " ppm",
+        "obtener": obtener_p,
+        "rotulo_eje": "P (ppm)",
+        "decimales": 0,
+    },
+    "k": {
+        "titulo": "Potasio",
+        "icono": "alpha-k-circle-outline",
+        "color": (0.60, 0.40, 0.05, 1),
+        "unidad": " ppm",
+        "obtener": obtener_k,
+        "rotulo_eje": "K (ppm)",
+        "decimales": 0,
     },
     "temperatura": {
         "titulo": "Temperatura",
@@ -48,6 +74,8 @@ VARIABLES = {
         "color": (0.75, 0.28, 0.05, 1),
         "unidad": "°C",
         "obtener": obtener_temperatura,
+        "rotulo_eje": "Temp. (°C)",
+        "decimales": 0,
     },
     "humedad": {
         "titulo": "Humedad",
@@ -55,6 +83,8 @@ VARIABLES = {
         "color": (0.05, 0.3, 0.6, 1),
         "unidad": "%",
         "obtener": obtener_humedad,
+        "rotulo_eje": "Humedad (%)",
+        "decimales": 0,
     },
     "iluminacion": {
         "titulo": "Iluminacion",
@@ -62,27 +92,14 @@ VARIABLES = {
         "color": (0.65, 0.5, 0.0, 1),
         "unidad": " lux",
         "obtener": obtener_iluminacion,
+        "rotulo_eje": "Luz (lux)",
+        "decimales": 0,
     },
 }
 
 
 def _serie_desde_historial(variable, historial):
     """Convierte el historial (lista de dicts) en una lista de numeros para graficar."""
-    if variable == "npk":
-        # Para NPK graficamos el promedio de N, P, K como una sola linea
-        serie = []
-        for medicion in historial:
-            numeros = []
-            for campo in ("n", "p", "k"):
-                valor = medicion.get(campo)
-                try:
-                    if valor is not None:
-                        numeros.append(float(valor))
-                except (TypeError, ValueError):
-                    pass
-            serie.append(sum(numeros) / len(numeros) if numeros else None)
-        return serie
-
     serie = []
     for medicion in historial:
         valor = medicion.get(variable)
@@ -91,6 +108,11 @@ def _serie_desde_historial(variable, historial):
         except (TypeError, ValueError):
             serie.append(None)
     return serie
+
+
+def _fechas_desde_historial(historial):
+    """Fechas (mismo indice que _serie_desde_historial) para las etiquetas de hora del eje X."""
+    return [medicion.get("fecha") for medicion in historial]
 
 
 class DetalleScreen(NavegableScreen, MDScreen):
@@ -117,6 +139,8 @@ class DetalleScreen(NavegableScreen, MDScreen):
         self.ids.icono_variable.icon = info["icono"]
         self.ids.icono_variable.text_color = info["color"]
         self.ids.grafica_tendencia.color_linea = list(info["color"])
+        self.ids.grafica_tendencia.rotulo_eje_y = info["rotulo_eje"]
+        self.ids.grafica_tendencia.decimales = info["decimales"]
         self.ids.valor_actual.text = "..."
         self.ids.mensaje_historial.text = "Cargando..."
 
@@ -131,14 +155,13 @@ class DetalleScreen(NavegableScreen, MDScreen):
                 return
 
             valor, historial = resultado
-            if variable == "npk" and valor:
-                self.ids.valor_actual.text = f"N:{valor['n']}  P:{valor['p']}  K:{valor['k']}"
-            elif valor is not None:
+            if valor is not None:
                 self.ids.valor_actual.text = f"{valor}{info['unidad']}"
             else:
                 self.ids.valor_actual.text = "--"
 
             self.ids.grafica_tendencia.valores = _serie_desde_historial(variable, historial)
+            self.ids.grafica_tendencia.fechas = _fechas_desde_historial(historial)
             if historial:
                 self.ids.mensaje_historial.text = f"{len(historial)} mediciones registradas hoy"
             else:

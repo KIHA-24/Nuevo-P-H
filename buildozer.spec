@@ -24,7 +24,7 @@ version = 0.1
 # for Python 3.14 (matching python-for-android's own current default) - not
 # for 3.11, which is what we had pinned before. Pinning an older Python here
 # would make materialyoucolor impossible to install (no recipe, pip-only).
-requirements = python3,hostpython3,kivy==2.3.1,kivymd==2.0.0,requests,materialyoucolor,asynckivy==0.6.4,asyncgui==0.6.3,materialshapes
+requirements = python3,hostpython3,kivy==2.3.1,kivymd==2.0.0,requests,materialyoucolor,asynckivy==0.6.4,asyncgui==0.6.3,materialshapes,plyer
 
 # (str) Custom local recipes to override the default python-for-android ones.
 # python3/__init__.py here is a copy of the upstream recipe with one line
@@ -56,7 +56,10 @@ orientation = portrait
 fullscreen = 0
 
 # (list) Permissions
-android.permissions = android.permission.INTERNET
+# POST_NOTIFICATIONS: requerido desde Android 13 (API 33) para poder mostrar
+# notificaciones nativas (plyer.notification) - sin este permiso, notify()
+# simplemente no muestra nada en esas versiones.
+android.permissions = android.permission.INTERNET,android.permission.POST_NOTIFICATIONS
 
 # (int) Target Android API, should be as high as possible.
 #android.api = 33

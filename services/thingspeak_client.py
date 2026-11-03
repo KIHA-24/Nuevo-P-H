@@ -20,13 +20,12 @@ canal configurado, las funciones devuelven None/listas vacias para que el
 resto de la app no se rompa.
 """
 
-import json
-import os
+import sqlite3
 import time
 
 import requests
 
-from services import cultivos_store
+from services import cultivos_store, lecturas_store
 
 THINGSPEAK_URL = "https://api.thingspeak.com"
 
@@ -48,14 +47,6 @@ _TIEMPO_CACHE_SEGUNDOS = 5
 _cache_por_cultivo = {}
 
 
-def _ruta_configuracion(cultivo_id):
-    return os.path.join(
-        os.path.dirname(os.path.dirname(__file__)),
-        "datos_locales",
-        f"configuracion_{cultivo_id}.json",
-    )
-
-
 def _canal_configurado(cultivo):
     return bool(cultivo["channel_id"] and cultivo["read_api_key"])
 
@@ -69,8 +60,64 @@ def _pedir_json(url, params):
         return None
 
 
+def _feed_a_valores_normalizados(feed):
+    """Convierte un feed de ThingSpeak (field1..field8 + created_at) al
+    formato ph/ce/n/p/k/... que usa lecturas_store."""
+    valores = {"fecha": feed.get("created_at")}
+    for nombre, campo in CAMPOS.items():
+        try:
+            valores[nombre] = float(feed[campo]) if feed.get(campo) is not None else None
+        except (TypeError, ValueError):
+            valores[nombre] = None
+    return valores
+
+
+def _respaldar_lectura_local(cultivo_id, feed):
+    """Guarda una lectura exitosa en el cache local, salvo que sea la
+    misma que ya tenemos guardada (mismo "created_at"): el dashboard
+    pregunta a ThingSpeak cada 15s, pero el sensor real tarda mas en
+    mandar un dato nuevo, asi que sin este chequeo se duplicaria la
+    misma lectura una y otra vez. Guardado silencioso: si el disco
+    falla, no debe romper el flujo normal de la app."""
+    try:
+        fecha_nueva = feed.get("created_at")
+        if fecha_nueva and fecha_nueva == lecturas_store.obtener_ultima_fecha_guardada(cultivo_id):
+            return
+        lecturas_store.guardar_lectura(cultivo_id, _feed_a_valores_normalizados(feed))
+    except sqlite3.Error:
+        pass
+
+
+def _fila_local_a_feed(fila):
+    """Convierte una fila de lecturas_store de vuelta al formato
+    field1..field8 que espera el resto de este archivo (_valor_campo,
+    obtener_ph, etc.), agregando "offline": True para que quien la reciba
+    sepa que no es una lectura fresca de ThingSpeak."""
+    if not fila:
+        return None
+    feed = {"created_at": fila["fecha"], "offline": True}
+    for nombre, campo in CAMPOS.items():
+        feed[campo] = fila.get(nombre)
+    return feed
+
+
+def _ultima_lectura_local(cultivo_id):
+    try:
+        filas = lecturas_store.obtener_ultimas_lecturas(cultivo_id, cantidad=1)
+    except sqlite3.Error:
+        return None
+    return _fila_local_a_feed(filas[0]) if filas else None
+
+
 def _obtener_ultima_lectura(forzar=False):
-    """Pide a ThingSpeak la ultima lectura del cultivo activo, con cache de unos segundos."""
+    """Pide a ThingSpeak la ultima lectura del cultivo activo, con cache de unos segundos.
+
+    Si ThingSpeak no responde:
+    - y ya habia una lectura en cache (aunque este vencida), se sigue
+      devolviendo esa en vez de pisarla con None.
+    - y no habia nada en cache, se recurre a la ultima lectura guardada en
+      lecturas_store (ver _fila_local_a_feed) marcada como "offline".
+    """
     cultivo = cultivos_store.obtener_cultivo_activo()
     if not _canal_configurado(cultivo):
         return None
@@ -83,8 +130,16 @@ def _obtener_ultima_lectura(forzar=False):
             f"{THINGSPEAK_URL}/channels/{cultivo['channel_id']}/feeds/last.json",
             {"api_key": cultivo["read_api_key"]},
         )
-        cache["datos"] = datos
-        cache["momento"] = ahora
+        if datos:
+            _respaldar_lectura_local(cultivo["id"], datos)
+            cache["datos"] = datos
+            cache["momento"] = ahora
+        elif cache["datos"] is None:
+            cache["datos"] = _ultima_lectura_local(cultivo["id"])
+            cache["momento"] = ahora
+        # Si ThingSpeak fallo pero cache["datos"] ya tenia una lectura
+        # buena de un pedido anterior, se deja tal cual (no se pisa con
+        # None), para no perder la ultima lectura conocida.
 
     return cache["datos"]
 
@@ -114,9 +169,24 @@ def obtener_ce():
     return _valor_campo("ce")
 
 
+def obtener_n():
+    """Retorna el valor mas reciente de Nitrogeno (ppm)."""
+    return _valor_campo("n")
+
+
+def obtener_p():
+    """Retorna el valor mas reciente de Fosforo (ppm)."""
+    return _valor_campo("p")
+
+
+def obtener_k():
+    """Retorna el valor mas reciente de Potasio (ppm)."""
+    return _valor_campo("k")
+
+
 def obtener_npk():
     """Retorna el NPK mas reciente como dict {'n': .., 'p': .., 'k': ..}, o None."""
-    n, p, k = _valor_campo("n"), _valor_campo("p"), _valor_campo("k")
+    n, p, k = obtener_n(), obtener_p(), obtener_k()
     if n is None and p is None and k is None:
         return None
     return {"n": n, "p": p, "k": k}
@@ -140,6 +210,9 @@ def obtener_iluminacion():
 _VARIABLES_CON_UMBRAL = {
     "ph": obtener_ph,
     "ce": obtener_ce,
+    "n": obtener_n,
+    "p": obtener_p,
+    "k": obtener_k,
     "temperatura": obtener_temperatura,
     "humedad": obtener_humedad,
     "iluminacion": obtener_iluminacion,
@@ -168,13 +241,23 @@ def obtener_estados_por_variable():
     variable con umbral configurado, por separado. Se usa para resaltar
     en el Dashboard cual tarjeta especifica esta fuera de rango, en vez
     de solo mostrar un estado general.
+
+    Como efecto secundario (silencioso, no afecta lo que se retorna) deja
+    registrado en lecturas_store cuando una variable entra o sale de
+    advertencia/critico, para armar un historial de alertas.
     """
+    cultivo = cultivos_store.obtener_cultivo_activo()
     umbrales = obtener_configuracion() or {}
     estados = {}
     for nombre, obtener in _VARIABLES_CON_UMBRAL.items():
         minimo = umbrales.get(f"{nombre}_min")
         maximo = umbrales.get(f"{nombre}_max")
-        estados[nombre] = _estado_de_valor(obtener(), minimo, maximo)
+        estado = _estado_de_valor(obtener(), minimo, maximo)
+        estados[nombre] = estado
+        try:
+            lecturas_store.registrar_cambio_estado(cultivo["id"], nombre, estado)
+        except sqlite3.Error:
+            pass
     return estados
 
 
@@ -215,7 +298,16 @@ def obtener_historial(rango="dia"):
         {"api_key": cultivo["read_api_key"], "results": cantidad},
     )
     if not datos:
-        return []
+        # ThingSpeak no respondio: usamos el respaldo local en vez de
+        # dejar el historial vacio. obtener_ultimas_lecturas() entrega
+        # mas-reciente-primero (para ese otro uso es lo que conviene),
+        # pero aca hace falta mas-antiguo-primero, igual que el camino
+        # normal de ThingSpeak (feeds.json), asi que se invierte el orden.
+        try:
+            lecturas = lecturas_store.obtener_ultimas_lecturas(cultivo["id"], cantidad=cantidad)
+        except sqlite3.Error:
+            return []
+        return list(reversed(lecturas))
 
     historial = []
     for lectura in datos.get("feeds", []):
@@ -237,21 +329,15 @@ def obtener_historial(rango="dia"):
 
 def guardar_configuracion(umbrales: dict):
     """
-    Guarda en un archivo local los umbrales optimos del cultivo activo.
+    Guarda los umbrales optimos del cultivo activo (tabla "configuracion"
+    de lecturas.db).
     umbrales, ejemplo: {"ph_min": 5.5, "ph_max": 6.5, "ce_min": 1.2, "ce_max": 2.0}
     """
     cultivo = cultivos_store.obtener_cultivo_activo()
-    ruta = _ruta_configuracion(cultivo["id"])
-    os.makedirs(os.path.dirname(ruta), exist_ok=True)
-    with open(ruta, "w", encoding="utf-8") as archivo:
-        json.dump(umbrales, archivo)
+    lecturas_store.guardar_configuracion(cultivo["id"], umbrales)
 
 
 def obtener_configuracion():
     """Retorna los umbrales guardados del cultivo activo, o None si aun no hay ninguno."""
     cultivo = cultivos_store.obtener_cultivo_activo()
-    try:
-        with open(_ruta_configuracion(cultivo["id"]), "r", encoding="utf-8") as archivo:
-            return json.load(archivo)
-    except (FileNotFoundError, ValueError):
-        return None
+    return lecturas_store.obtener_configuracion(cultivo["id"])

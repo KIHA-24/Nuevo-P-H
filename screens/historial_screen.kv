@@ -1,3 +1,6 @@
+#:import dp kivy.metrics.dp
+
+
 <HistorialScreen>:
     name: "historial"
     md_bg_color: self.theme_cls.backgroundColor
@@ -10,59 +13,153 @@
             title: "Historial de mediciones"
             callback_volver: root.volver
 
-        MDBoxLayout:
-            orientation: "vertical"
-            padding: "16dp"
-            spacing: "12dp"
+        ScrollView:
+            do_scroll_x: False
 
             MDBoxLayout:
-                spacing: "10dp"
-                size_hint_y: None
-                height: "48dp"
-
-                BotonAncho:
-                    style: "filled" if root.rango_actual == "dia" else "outlined"
-                    theme_width: "Custom"
-                    size_hint_x: 1
-                    on_release: root.cargar_historial("dia")
-                    MDButtonIcon:
-                        icon: "calendar-today"
-                    MDButtonText:
-                        text: "Hoy"
-
-                BotonAncho:
-                    style: "filled" if root.rango_actual == "semana" else "outlined"
-                    theme_width: "Custom"
-                    size_hint_x: 1
-                    on_release: root.cargar_historial("semana")
-                    MDButtonIcon:
-                        icon: "calendar-week"
-                    MDButtonText:
-                        text: "Semana"
-
-            MDBoxLayout:
-                id: contenedor_vacio
                 orientation: "vertical"
-                spacing: "6dp"
+                padding: "16dp"
+                spacing: "14dp"
                 size_hint_y: None
-                height: "90dp" if mensaje_vacio.opacity else 0
-                opacity: mensaje_vacio.opacity
-
-                MDIcon:
-                    icon: "tray-remove"
-                    pos_hint: {"center_x": 0.5}
-                    theme_text_color: "Secondary"
-                    font_size: "30sp"
+                height: self.minimum_height
 
                 MDLabel:
-                    id: mensaje_vacio
-                    text: "No hay mediciones registradas todavia"
-                    halign: "center"
+                    text: "Resumen de alertas (ultimos 7 dias)"
                     theme_text_color: "Secondary"
+                    font_size: "13sp"
                     size_hint_y: None
-                    height: "24dp"
+                    height: self.texture_size[1]
 
-            ScrollView:
+                MDGridLayout:
+                    cols: 2 if self.width < dp(500) else (3 if self.width < dp(750) else 5)
+                    spacing: "10dp"
+                    size_hint_y: None
+                    row_default_height: "120dp"
+                    height: self.minimum_height
+
+                    VariableCard:
+                        id: resumen_ph
+                        titulo: "pH"
+                        valor: "0"
+                        icono: "flask-outline"
+                        md_bg_color: 0.80, 0.92, 0.91, 1
+                        color_icono: 0.0, 0.35, 0.35, 1
+
+                    VariableCard:
+                        id: resumen_ce
+                        titulo: "CE"
+                        valor: "0"
+                        icono: "flash-outline"
+                        md_bg_color: 0.82, 0.90, 0.95, 1
+                        color_icono: 0.05, 0.35, 0.5, 1
+
+                    VariableCard:
+                        id: resumen_temperatura
+                        titulo: "Temperatura"
+                        valor: "0"
+                        icono: "thermometer"
+                        md_bg_color: 0.99, 0.85, 0.80, 1
+                        color_icono: 0.75, 0.28, 0.05, 1
+
+                    VariableCard:
+                        id: resumen_humedad
+                        titulo: "Humedad"
+                        valor: "0"
+                        icono: "water-percent"
+                        md_bg_color: 0.80, 0.88, 0.97, 1
+                        color_icono: 0.05, 0.3, 0.6, 1
+
+                    VariableCard:
+                        id: resumen_iluminacion
+                        titulo: "Iluminacion"
+                        valor: "0"
+                        icono: "white-balance-sunny"
+                        md_bg_color: 0.99, 0.94, 0.75, 1
+                        color_icono: 0.65, 0.5, 0.0, 1
+
+                MDBoxLayout:
+                    id: contenedor_alertas_vacio
+                    orientation: "vertical"
+                    spacing: "6dp"
+                    size_hint_y: None
+                    height: "70dp" if mensaje_alertas_vacio.opacity else 0
+                    opacity: mensaje_alertas_vacio.opacity
+
+                    MDIcon:
+                        icon: "shield-check-outline"
+                        pos_hint: {"center_x": 0.5}
+                        theme_text_color: "Secondary"
+                        font_size: "26sp"
+
+                    MDLabel:
+                        id: mensaje_alertas_vacio
+                        text: "Sin alertas registradas en este periodo"
+                        halign: "center"
+                        theme_text_color: "Secondary"
+                        size_hint_y: None
+                        height: "22dp"
+
+                MDList:
+                    id: lista_alertas
+                    size_hint_y: None
+                    height: self.minimum_height
+
+                MDDivider:
+
+                MDLabel:
+                    text: "Mediciones"
+                    theme_text_color: "Secondary"
+                    font_size: "13sp"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+
+                MDBoxLayout:
+                    spacing: "10dp"
+                    size_hint_y: None
+                    height: "48dp"
+
+                    BotonAncho:
+                        style: "filled" if root.rango_actual == "dia" else "outlined"
+                        theme_width: "Custom"
+                        size_hint_x: 1
+                        on_release: root.cargar_historial("dia")
+                        MDButtonIcon:
+                            icon: "calendar-today"
+                        MDButtonText:
+                            text: "Hoy"
+
+                    BotonAncho:
+                        style: "filled" if root.rango_actual == "semana" else "outlined"
+                        theme_width: "Custom"
+                        size_hint_x: 1
+                        on_release: root.cargar_historial("semana")
+                        MDButtonIcon:
+                            icon: "calendar-week"
+                        MDButtonText:
+                            text: "Semana"
+
+                MDBoxLayout:
+                    id: contenedor_vacio
+                    orientation: "vertical"
+                    spacing: "6dp"
+                    size_hint_y: None
+                    height: "90dp" if mensaje_vacio.opacity else 0
+                    opacity: mensaje_vacio.opacity
+
+                    MDIcon:
+                        icon: "tray-remove"
+                        pos_hint: {"center_x": 0.5}
+                        theme_text_color: "Secondary"
+                        font_size: "30sp"
+
+                    MDLabel:
+                        id: mensaje_vacio
+                        text: "No hay mediciones registradas todavia"
+                        halign: "center"
+                        theme_text_color: "Secondary"
+                        size_hint_y: None
+                        height: "24dp"
+
                 MDList:
                     id: lista_historial
                     size_hint_y: None

@@ -14,21 +14,27 @@ from kivymd.uix.dialog import (
 )
 from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.textfield import MDTextField, MDTextFieldHintText
+from plyer import notification
 
 from services import cultivos_store
 from services.thingspeak_client import (
     obtener_ph,
     obtener_ce,
-    obtener_npk,
+    obtener_n,
+    obtener_p,
+    obtener_k,
     obtener_temperatura,
     obtener_humedad,
     obtener_iluminacion,
     obtener_estado_general,
     obtener_estados_por_variable,
+    obtener_configuracion,
 )
+from screens.avisos import calcular_avisos
 from widgets.hilos import ejecutar_en_segundo_plano
 from widgets.snackbar import mostrar_snackbar
 from widgets.boton_ancho import BotonAncho
+from widgets.tarjeta_variable_barra import TarjetaVariableBarra  # noqa: F401  (registra TarjetaVariableBarra para el .kv)
 
 Builder.load_file(os.path.join(os.path.dirname(__file__), "dashboard_screen.kv"))
 
@@ -37,13 +43,6 @@ ESTADO_TEXTOS = {
     "advertencia": "Advertencia",
     "critico": "Critico",
     "sin_datos": "Sin datos",
-}
-
-ESTADO_COLORES = {
-    "optimo": (0.80, 0.92, 0.91, 1),
-    "advertencia": (0.99, 0.92, 0.78, 1),
-    "critico": (0.97, 0.8, 0.8, 1),
-    "sin_datos": (0.9, 0.9, 0.9, 1),
 }
 
 COLOR_BORDE_ALERTA = {
@@ -56,8 +55,18 @@ COLOR_BORDE_ALERTA = {
 TIEMPO_MANTENER_PRESIONADO = 0.5
 
 
-def _formatear(valor, unidad=""):
-    return f"{valor}{unidad}" if valor is not None else "--"
+VARIABLES_CON_BARRA = {"ph", "ce", "n", "p", "k"}
+
+# pH y CE se muestran con 1 decimal (valores tipicamente entre 0 y 10); el
+# resto se redondea a entero para que el numero no se corte/envuelva en la
+# caja de valor, angosta a proposito para dejarle espacio a la barra.
+_DECIMALES_VALOR = {"ph": 1, "ce": 1}
+
+
+def _formatear_valor(variable, valor):
+    if valor is None:
+        return "--"
+    return f"{valor:.{_DECIMALES_VALOR.get(variable, 0)}f}"
 
 
 class _BotonCultivo(MDButton):
@@ -99,10 +108,16 @@ class DashboardScreen(MDScreen):
     _dialogo = None
     _campo_dialogo = None
     _menu_cultivo = None
-    _ultimo_estado_alertado = None
     _version_datos = 0
     _evento_auto_actualizacion = None
     INTERVALO_AUTO_ACTUALIZACION = 15  # segundos entre cada refresco automatico
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Ultimo estado de alerta avisado de cada variable (ver
+        # screens/avisos.py:calcular_avisos). Instancia propia (no atributo
+        # de clase) para no compartir el dict entre instancias.
+        self._estados_alertados = {}
 
     def ir_a(self, nombre_pantalla):
         self.manager.current = nombre_pantalla
@@ -308,24 +323,26 @@ class DashboardScreen(MDScreen):
 
     def actualizar_datos(self):
         """
-        Refresca las VariableCard con los datos del cultivo activo.
+        Refresca las tarjetas de variables con los datos del cultivo activo.
         La consulta a ThingSpeak puede tardar (es una llamada de red), asi
         que corre en un hilo aparte para no trabar la interfaz mientras espera.
         """
         self._version_datos += 1
         version = self._version_datos
-        self.ids.valor_estado.text = "Cargando..."
 
         def _tarea():
             return {
                 "ph": obtener_ph(),
                 "ce": obtener_ce(),
-                "npk": obtener_npk(),
+                "n": obtener_n(),
+                "p": obtener_p(),
+                "k": obtener_k(),
                 "temperatura": obtener_temperatura(),
                 "humedad": obtener_humedad(),
                 "iluminacion": obtener_iluminacion(),
                 "estado": obtener_estado_general(),
                 "estados_variables": obtener_estados_por_variable(),
+                "configuracion": obtener_configuracion() or {},
             }
 
         def _al_terminar(datos):
@@ -334,48 +351,64 @@ class DashboardScreen(MDScreen):
             if version != self._version_datos:
                 return
 
-            npk = datos["npk"]
-            self.ids.card_ph.valor = _formatear(datos["ph"])
-            self.ids.card_ce.valor = _formatear(datos["ce"])
-            self.ids.card_npk.valor = (
-                f"N:{npk['n']}  P:{npk['p']}  K:{npk['k']}" if npk else "--"
-            )
-            self.ids.card_temperatura.valor = _formatear(datos["temperatura"], "°C")
-            self.ids.card_humedad.valor = _formatear(datos["humedad"], "%")
-            self.ids.card_iluminacion.valor = _formatear(datos["iluminacion"], " lux")
+            umbrales = datos["configuracion"]
+            for variable in (
+                "ph", "ce", "n", "p", "k", "temperatura", "humedad", "iluminacion"
+            ):
+                tarjeta = self.ids[f"card_{variable}"]
+                tarjeta.valor_texto = _formatear_valor(variable, datos[variable])
+                tarjeta.valor_numerico = datos[variable]
+                if variable in VARIABLES_CON_BARRA:
+                    tarjeta.minimo_optimo = umbrales.get(f"{variable}_min")
+                    tarjeta.maximo_optimo = umbrales.get(f"{variable}_max")
 
-            self.ids.valor_estado.text = ESTADO_TEXTOS.get(datos["estado"], "Sin datos")
             for variable, estado in datos["estados_variables"].items():
                 card_id = f"card_{variable}"
                 if card_id in self.ids:
                     self.ids[card_id].color_borde = COLOR_BORDE_ALERTA.get(estado, (0, 0, 0, 0))
-            self._avisar_si_cambio_a_alerta(datos["estado"])
-            self.ids.card_estado.md_bg_color = ESTADO_COLORES.get(
-                datos["estado"], ESTADO_COLORES["sin_datos"]
-            )
+            self._avisar_variables_en_alerta(datos["estados_variables"], datos, umbrales)
 
         ejecutar_en_segundo_plano(_tarea, _al_terminar)
 
-    def _avisar_si_cambio_a_alerta(self, estado_nuevo):
+    def _avisar_variables_en_alerta(self, estados_variables, valores, umbrales):
         """
-        Muestra una notificacion SOLO la primera vez que el cultivo entra en
-        un estado de alerta (no en cada refresco, para no saturar al usuario
-        con el mismo aviso repetido cada pocos segundos).
+        Avisa (snackbar + notificacion nativa) de las variables que entraron
+        a advertencia/critico o escalaron de advertencia a critico en este
+        refresco - no de las que ya estaban en el mismo estado de alerta en
+        el refresco anterior. La decision de que avisar (y si agrupar varios
+        avisos en uno) vive en screens/avisos.py, para poder probarla sin
+        levantar la app.
         """
-        if estado_nuevo == self._ultimo_estado_alertado:
-            return  # ya se aviso de este mismo estado, no repetir
+        avisos, self._estados_alertados = calcular_avisos(
+            self._estados_alertados, estados_variables, valores, umbrales
+        )
 
-        if estado_nuevo == "critico":
-            mostrar_snackbar(
-                "Atencion: una o mas variables estan fuera de rango",
-                error=True,
-                duracion=4.0,
+        # Si hay mas de un aviso individual a la vez, se escalonan (el
+        # segundo aparece recien cuando termina la duracion del primero)
+        # para que no se encimen visualmente.
+        retraso_acumulado = 0.0
+        for aviso in avisos:
+            duracion = 4.0 if aviso["es_critico"] else 3.0
+            Clock.schedule_once(
+                lambda _dt, aviso=aviso, duracion=duracion: self._mostrar_aviso(aviso, duracion),
+                retraso_acumulado,
             )
-        elif estado_nuevo == "advertencia":
-            mostrar_snackbar(
-                "Una variable se esta acercando al limite optimo",
-                error=False,
-                duracion=3.0,
-            )
+            retraso_acumulado += duracion
 
-        self._ultimo_estado_alertado = estado_nuevo    
+    def _mostrar_aviso(self, aviso, duracion):
+        mostrar_snackbar(aviso["texto"], error=aviso["es_critico"], duracion=duracion)
+        self._notificar_nativo(aviso["texto"])
+
+    def _notificar_nativo(self, mensaje):
+        """
+        Notificacion nativa del sistema operativo, ademas del snackbar: avisa
+        aunque el usuario tenga la app minimizada o en segundo plano. plyer
+        puede fallar o no estar disponible segun la plataforma (o si en
+        Android 13+ no se concedio el permiso POST_NOTIFICATIONS) - eso nunca
+        debe romper el resto de la app ni afectar al snackbar, que ya se
+        mostro antes de llegar aca.
+        """
+        try:
+            notification.notify(title="HydroSmart - Alerta", message=mensaje, timeout=5)
+        except Exception:
+            pass

@@ -185,6 +185,117 @@
                     MDDivider:
 
                     MDLabel:
+                        text: "NITROGENO (N)"
+                        bold: True
+                        theme_text_color: "Secondary"
+                        font_size: "12sp"
+                        size_hint_y: None
+                        height: self.texture_size[1]
+
+                    MDBoxLayout:
+                        spacing: "10dp"
+                        size_hint_y: None
+                        height: "64dp"
+
+                        MDTextField:
+                            id: n_min
+                            mode: "outlined"
+                            input_filter: "float"
+
+                            MDTextFieldLeadingIcon:
+                                icon: "alpha-n-circle-outline"
+
+                            MDTextFieldHintText:
+                                text: "N minimo (ppm)"
+
+                        MDTextField:
+                            id: n_max
+                            mode: "outlined"
+                            input_filter: "float"
+
+                            MDTextFieldLeadingIcon:
+                                icon: "alpha-n-circle-outline"
+
+                            MDTextFieldHintText:
+                                text: "N maximo (ppm)"
+
+                    MDDivider:
+
+                    MDLabel:
+                        text: "FOSFORO (P)"
+                        bold: True
+                        theme_text_color: "Secondary"
+                        font_size: "12sp"
+                        size_hint_y: None
+                        height: self.texture_size[1]
+
+                    MDBoxLayout:
+                        spacing: "10dp"
+                        size_hint_y: None
+                        height: "64dp"
+
+                        MDTextField:
+                            id: p_min
+                            mode: "outlined"
+                            input_filter: "float"
+
+                            MDTextFieldLeadingIcon:
+                                icon: "alpha-p-circle-outline"
+
+                            MDTextFieldHintText:
+                                text: "P minimo (ppm)"
+
+                        MDTextField:
+                            id: p_max
+                            mode: "outlined"
+                            input_filter: "float"
+
+                            MDTextFieldLeadingIcon:
+                                icon: "alpha-p-circle-outline"
+
+                            MDTextFieldHintText:
+                                text: "P maximo (ppm)"
+
+                    MDDivider:
+
+                    MDLabel:
+                        text: "POTASIO (K)"
+                        bold: True
+                        theme_text_color: "Secondary"
+                        font_size: "12sp"
+                        size_hint_y: None
+                        height: self.texture_size[1]
+
+                    MDBoxLayout:
+                        spacing: "10dp"
+                        size_hint_y: None
+                        height: "64dp"
+
+                        MDTextField:
+                            id: k_min
+                            mode: "outlined"
+                            input_filter: "float"
+
+                            MDTextFieldLeadingIcon:
+                                icon: "alpha-k-circle-outline"
+
+                            MDTextFieldHintText:
+                                text: "K minimo (ppm)"
+
+                        MDTextField:
+                            id: k_max
+                            mode: "outlined"
+                            input_filter: "float"
+
+                            MDTextFieldLeadingIcon:
+                                icon: "alpha-k-circle-outline"
+
+                            MDTextFieldHintText:
+                                text: "K maximo (ppm)"
+
+                    MDDivider:
+
+                    MDLabel:
                         text: "TEMPERATURA"
                         bold: True
                         theme_text_color: "Secondary"
