@@ -92,8 +92,14 @@
 
                 MDCard:
                     orientation: "vertical"
-                    style: "elevated"
-                    elevation_level: 1
+                    # "outlined" (sin sombra), no "elevated": la sombra real
+                    # de KivyMD renderiza un blur recursivo via Fbo que
+                    # crashea esta GPU Adreno con SIGSEGV en
+                    # libGLESv2_adreno.so (confirmado en dispositivo, mismo
+                    # patron de bug ya documentado para ripple_effect/
+                    # transiciones Fbo en este proyecto, pero un codepath
+                    # distinto que ese fix no cubre).
+                    style: "outlined"
                     radius: [20]
                     padding: "18dp"
                     spacing: "4dp"
