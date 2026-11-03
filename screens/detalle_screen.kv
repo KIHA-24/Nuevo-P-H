@@ -90,29 +90,39 @@
                         MDButtonText:
                             text: "Luz"
 
-                MDCard:
+                BoxLayout:
+                    # NO MDCard: CommonElevationBehavior (la base de TODA
+                    # MDCard, sin importar "style" ni elevation_level)
+                    # agrega siempre un BoxShadow nativo de Kivy en su
+                    # canvas.before envuelto en PushMatrix/Scale/Rotate/
+                    # PopMatrix - incluso con elevation_level=0 el
+                    # BoxShadow se sigue creando y dibujando, solo con
+                    # blur_radius=0. Ese patron crashea esta GPU Adreno con
+                    # SIGSEGV en libGLESv2_adreno.so apenas se toca la
+                    # tarjeta (confirmado en dispositivo). Por eso
+                    # VariableCard/TarjetaVariableBarra en este proyecto ya
+                    # evitan MDCard y dibujan el fondo a mano - mismo
+                    # criterio aca.
                     orientation: "vertical"
-                    # IMPORTANTE: theme_elevation_level debe quedar en
-                    # "Custom" (no el default "Primary"). MDCard.
-                    # set_properties_widget() pone elevation_level=1 solo
-                    # con TOCAR o soltar la tarjeta -incluso con
-                    # style="outlined"/"filled"- mientras
-                    # theme_elevation_level siga en "Primary". Esa sombra
-                    # real se renderiza con un blur recursivo via Fbo que
-                    # crashea esta GPU Adreno con SIGSEGV en
-                    # libGLESv2_adreno.so (confirmado en dispositivo:
-                    # reproducido con un solo toque sobre la tarjeta/la
-                    # grafica de abajo). Mismo patron de bug ya documentado
-                    # para ripple_effect/transiciones Fbo en este proyecto,
-                    # pero un codepath distinto que esos fixes no cubren.
-                    style: "outlined"
-                    theme_elevation_level: "Custom"
-                    elevation_level: 0
-                    radius: [20]
                     padding: "18dp"
                     spacing: "4dp"
                     size_hint_y: None
                     height: "130dp"
+
+                    canvas.before:
+                        Color:
+                            rgba: app.theme_cls.backgroundColor
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [20]
+
+                    canvas.after:
+                        Color:
+                            rgba: 0.6, 0.6, 0.6, 0.5
+                        Line:
+                            rounded_rectangle: [self.x, self.y, self.width, self.height, 20]
+                            width: 1.2
 
                     MDIcon:
                         id: icono_variable
@@ -141,19 +151,29 @@
                         size_hint_y: None
                         height: self.texture_size[1]
 
-                MDCard:
+                BoxLayout:
+                    # Ver el comentario de la tarjeta de valor arriba: por
+                    # que no es MDCard.
                     orientation: "vertical"
-                    # Ver el comentario de la tarjeta de valor arriba: sin
-                    # esto, tocar la grafica (que no consume el touch)
-                    # llega a esta tarjeta y dispara el mismo crash.
-                    style: "outlined"
-                    theme_elevation_level: "Custom"
-                    elevation_level: 0
-                    radius: [20]
                     padding: "20dp"
                     spacing: "8dp"
                     size_hint_y: None
                     height: self.minimum_height
+
+                    canvas.before:
+                        Color:
+                            rgba: app.theme_cls.backgroundColor
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [20]
+
+                    canvas.after:
+                        Color:
+                            rgba: 0.6, 0.6, 0.6, 0.5
+                        Line:
+                            rounded_rectangle: [self.x, self.y, self.width, self.height, 20]
+                            width: 1.2
 
                     MDLabel:
                         text: "Grafica de tendencia"
