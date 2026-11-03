@@ -92,14 +92,22 @@
 
                 MDCard:
                     orientation: "vertical"
-                    # "outlined" (sin sombra), no "elevated": la sombra real
-                    # de KivyMD renderiza un blur recursivo via Fbo que
+                    # IMPORTANTE: theme_elevation_level debe quedar en
+                    # "Custom" (no el default "Primary"). MDCard.
+                    # set_properties_widget() pone elevation_level=1 solo
+                    # con TOCAR o soltar la tarjeta -incluso con
+                    # style="outlined"/"filled"- mientras
+                    # theme_elevation_level siga en "Primary". Esa sombra
+                    # real se renderiza con un blur recursivo via Fbo que
                     # crashea esta GPU Adreno con SIGSEGV en
-                    # libGLESv2_adreno.so (confirmado en dispositivo, mismo
-                    # patron de bug ya documentado para ripple_effect/
-                    # transiciones Fbo en este proyecto, pero un codepath
-                    # distinto que ese fix no cubre).
+                    # libGLESv2_adreno.so (confirmado en dispositivo:
+                    # reproducido con un solo toque sobre la tarjeta/la
+                    # grafica de abajo). Mismo patron de bug ya documentado
+                    # para ripple_effect/transiciones Fbo en este proyecto,
+                    # pero un codepath distinto que esos fixes no cubren.
                     style: "outlined"
+                    theme_elevation_level: "Custom"
+                    elevation_level: 0
                     radius: [20]
                     padding: "18dp"
                     spacing: "4dp"
@@ -135,7 +143,12 @@
 
                 MDCard:
                     orientation: "vertical"
+                    # Ver el comentario de la tarjeta de valor arriba: sin
+                    # esto, tocar la grafica (que no consume el touch)
+                    # llega a esta tarjeta y dispara el mismo crash.
                     style: "outlined"
+                    theme_elevation_level: "Custom"
+                    elevation_level: 0
                     radius: [20]
                     padding: "20dp"
                     spacing: "8dp"
