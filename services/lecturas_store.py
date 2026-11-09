@@ -15,6 +15,8 @@ datos si la app se cierra a medio escribir uno de esos archivos:
 - "configuracion": los umbrales min/max de cada variable por cultivo
   (antes en datos_locales/configuracion_{cultivo_id}.json). La usa
   services/thingspeak_client.py.
+- "usuarios": cuentas locales (usuario + hash de contrasena). La usa
+  services/usuarios_store.py.
 
 conectar() migra automaticamente, la primera vez que se abre la base en
 todo el proceso, cualquier dato viejo que todavia este en esos archivos
@@ -113,6 +115,16 @@ def conectar():
             minimo REAL,
             maximo REAL,
             PRIMARY KEY (cultivo_id, variable)
+        )
+        """
+    )
+    conexion.execute(
+        """
+        CREATE TABLE IF NOT EXISTS usuarios (
+            usuario TEXT PRIMARY KEY COLLATE NOCASE,
+            sal TEXT NOT NULL,
+            hash TEXT NOT NULL,
+            creado TEXT NOT NULL
         )
         """
     )
@@ -554,3 +566,43 @@ def guardar_credenciales_cultivo(cultivo_id, channel_id, read_api_key, write_api
             )
     finally:
         conexion.close()
+
+
+# ---- usuarios (cuentas locales) --------------------------------------------
+# CRUD de bajo nivel sobre la tabla "usuarios". El hash/sal de la contrasena
+# y las reglas de validacion viven en services/usuarios_store.py - aca solo
+# esta el acceso a la tabla.
+
+
+def insertar_usuario(usuario, sal, hash_contrasena):
+    """Inserta una cuenta nueva. Lanza sqlite3.IntegrityError si el usuario
+    ya existe (comparando sin distinguir mayusculas, por la columna
+    COLLATE NOCASE)."""
+    conexion = conectar()
+    try:
+        with conexion:
+            conexion.execute(
+                "INSERT INTO usuarios (usuario, sal, hash, creado) VALUES (?, ?, ?, ?)",
+                (usuario, sal, hash_contrasena, _ahora()),
+            )
+    finally:
+        conexion.close()
+
+
+def obtener_usuario(usuario):
+    """
+    Retorna {"usuario", "sal", "hash", "creado"} de la cuenta (comparando
+    sin distinguir mayusculas), o None si no existe.
+    """
+    conexion = conectar()
+    try:
+        fila = conexion.execute(
+            "SELECT usuario, sal, hash, creado FROM usuarios WHERE usuario = ?",
+            (usuario,),
+        ).fetchone()
+    finally:
+        conexion.close()
+
+    if fila is None:
+        return None
+    return {"usuario": fila[0], "sal": fila[1], "hash": fila[2], "creado": fila[3]}

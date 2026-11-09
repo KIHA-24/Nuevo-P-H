@@ -127,6 +127,7 @@ class DashboardScreen(MDScreen):
         self.manager.current = "detalle"
 
     def cerrar_sesion(self):
+        self.manager.get_screen("login").limpiar_campos()
         self.manager.current = "login"
 
     def on_pre_enter(self, *args):

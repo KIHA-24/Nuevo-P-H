@@ -47,18 +47,29 @@
             MDTextFieldHintText:
                 text: "Usuario"
 
-        MDTextField:
-            id: contrasena
-            password: True
-            mode: "outlined"
+        MDBoxLayout:
+            orientation: "horizontal"
             size_hint_x: 0.9
             pos_hint: {"center_x": 0.5}
+            size_hint_y: None
+            height: contrasena.height
+            spacing: "4dp"
 
-            MDTextFieldLeadingIcon:
-                icon: "lock"
+            MDTextField:
+                id: contrasena
+                password: True
+                mode: "outlined"
+                size_hint_x: 1
 
-            MDTextFieldHintText:
-                text: "Contrasena"
+                MDTextFieldLeadingIcon:
+                    icon: "lock"
+
+                MDTextFieldHintText:
+                    text: "Contrasena"
+
+            MDIconButton:
+                icon: "eye-off" if contrasena.password else "eye"
+                on_release: contrasena.password = not contrasena.password
 
         MDButton:
             style: "filled"
@@ -71,6 +82,15 @@
 
             MDButtonText:
                 text: "INICIAR SESION"
+
+        MDButton:
+            style: "text"
+            pos_hint: {"center_x": 0.5}
+            size_hint_x: 0.9
+            on_release: root.ir_a_registro()
+
+            MDButtonText:
+                text: "Crear cuenta"
 
         Widget:
             size_hint_y: 0.3

@@ -26,6 +26,7 @@ def run_app():
     Builder.load_file(os.path.join(os.path.dirname(__file__), "widgets", "common.kv"))
 
     from screens.login_screen import LoginScreen
+    from screens.registro_screen import RegistroScreen
     from screens.dashboard_screen import DashboardScreen
     from screens.detalle_screen import DetalleScreen
     from screens.historial_screen import HistorialScreen
@@ -59,6 +60,7 @@ def run_app():
             # evitando esa ruta de codigo por completo.
             sm.transition = NoTransition()
             sm.add_widget(LoginScreen())
+            sm.add_widget(RegistroScreen())
             sm.add_widget(DashboardScreen())
             sm.add_widget(DetalleScreen())
             sm.add_widget(HistorialScreen())
@@ -76,7 +78,9 @@ def run_app():
                 def _manejar_tecla_atras(window, key, *args):
                     if key != 27:
                         return False
-                    if sm.current in ("detalle", "historial", "configuracion"):
+                    if sm.current == "registro":
+                        sm.current = "login"
+                    elif sm.current in ("detalle", "historial", "configuracion"):
                         sm.current = "dashboard"
                     return True
 

@@ -1,0 +1,108 @@
+<RegistroScreen>:
+    name: "registro"
+    md_bg_color: self.theme_cls.backgroundColor
+
+    MDBoxLayout:
+        orientation: "vertical"
+
+        BackTopAppBar:
+            id: barra_superior
+            title: "Crear cuenta"
+            callback_volver: root.volver
+
+        ScrollView:
+            do_scroll_x: False
+
+            MDBoxLayout:
+                orientation: "vertical"
+                padding: "32dp"
+                spacing: "14dp"
+                size_hint_y: None
+                height: self.minimum_height
+
+                Widget:
+                    size_hint_y: None
+                    height: "12dp"
+
+                MDLabel:
+                    text: "Crea tu cuenta de HydroSmart"
+                    halign: "center"
+                    theme_text_color: "Secondary"
+                    size_hint_y: None
+                    height: self.texture_size[1] + 10
+
+                MDTextField:
+                    id: usuario
+                    mode: "outlined"
+                    size_hint_x: 0.9
+                    pos_hint: {"center_x": 0.5}
+
+                    MDTextFieldLeadingIcon:
+                        icon: "account"
+
+                    MDTextFieldHintText:
+                        text: "Usuario"
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_x: 0.9
+                    pos_hint: {"center_x": 0.5}
+                    size_hint_y: None
+                    height: contrasena.height
+                    spacing: "4dp"
+
+                    MDTextField:
+                        id: contrasena
+                        password: True
+                        mode: "outlined"
+                        size_hint_x: 1
+
+                        MDTextFieldLeadingIcon:
+                            icon: "lock"
+
+                        MDTextFieldHintText:
+                            text: "Contrasena"
+
+                    MDIconButton:
+                        icon: "eye-off" if contrasena.password else "eye"
+                        on_release: contrasena.password = not contrasena.password
+
+                MDBoxLayout:
+                    orientation: "horizontal"
+                    size_hint_x: 0.9
+                    pos_hint: {"center_x": 0.5}
+                    size_hint_y: None
+                    height: confirmar_contrasena.height
+                    spacing: "4dp"
+
+                    MDTextField:
+                        id: confirmar_contrasena
+                        password: True
+                        mode: "outlined"
+                        size_hint_x: 1
+
+                        MDTextFieldLeadingIcon:
+                            icon: "lock-check"
+
+                        MDTextFieldHintText:
+                            text: "Confirmar contrasena"
+
+                    MDIconButton:
+                        icon: "eye-off" if confirmar_contrasena.password else "eye"
+                        on_release: confirmar_contrasena.password = not confirmar_contrasena.password
+
+                MDButton:
+                    style: "filled"
+                    pos_hint: {"center_x": 0.5}
+                    size_hint_x: 0.9
+                    on_release: root.crear_cuenta(usuario.text, contrasena.text, confirmar_contrasena.text)
+
+                    MDButtonIcon:
+                        icon: "account-plus"
+
+                    MDButtonText:
+                        text: "CREAR CUENTA"
+
+                Widget:
+                    size_hint_y: None
+                    height: "24dp"
